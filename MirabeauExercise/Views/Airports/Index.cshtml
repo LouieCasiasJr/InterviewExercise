@@ -1,0 +1,68 @@
+﻿@model PagedList.IPagedList<MirabeauExercise.Models.Airport>
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+@{
+	ViewBag.Title = "European Airports";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Airports in Europe</h2>
+
+@if (!Model.Any())
+{
+	<p>There is no data to show.</p>
+}
+else
+{
+	using (Html.BeginForm("Index", "Airports", FormMethod.Get))
+	{
+		 <p>Find by country (ISO): @Html.DropDownList("country", MirabeauExercise.Models.Airport.countries, "-Show All-")
+			 <input type="submit" value="Search"/>
+		 </p>
+
+		if (string.IsNullOrWhiteSpace(ViewBag.origin))
+		{
+			<h3>Select two IATA Airport codes to find the distance between airports.</h3>
+		}
+		else
+		{
+			<h3>Select one more airport to find the distance from @Html.TextBox("origin", null, new { maxlength = 3 })</h3>
+		}
+	}
+	<table class="table table-bordered">
+		<thead>
+		<tr>
+			<th>Name</th>
+			<th>Country</th>
+			<th>Size</th>
+			<th>Type</th>
+			<th>IATA</th>
+		</tr>
+		</thead>
+		<tbody>
+
+		@foreach (var airport in Model)
+		{
+			<tr>
+				<td witdth="65%">@airport.name</td>
+				<td witdth="5%">@airport.iso</td>
+				<td witdth="10%">@airport.size</td>
+				<td witdth="12%">@airport.type</td>
+				@if (ViewBag.origin == null)
+				{
+					<td witdth="8%">@Html.ActionLink(airport.iata, "Distance", "Airports", new { page = @Model.PageNumber, currentFilter = ViewBag.currentFilter, origin = airport.iata }, null)</td>
+				}
+				else
+				{
+					<td witdth="8%">@Html.ActionLink(airport.iata, "Distance", "Airports", new { origin = ViewBag.origin, destination = airport.iata }, null)</td>
+				}
+			</tr>
+		}
+		</tbody>
+	</table>
+	<br />
+}
+	Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", 
+	new { page, currentFilter = ViewBag.CurrentFilter, origin = ViewBag.origin }))

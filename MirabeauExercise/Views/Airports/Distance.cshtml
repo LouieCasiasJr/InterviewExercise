@@ -1,0 +1,22 @@
+﻿@model MirabeauExercise.Models.Distance
+@{
+	ViewBag.Title = "Travelling Distance";
+}
+<h2>@ViewBag.Title</h2>
+<h3>Find the direct distance between airports using IATA Airport codes!</h3>
+
+@using (Html.BeginForm("Distance", "Airports", FormMethod.Get))
+{
+<p>Find distance between: @Html.TextBox("origin", null, new {maxlength=3}) and: @Html.TextBox("destination", null, new { maxlength = 3 })
+	<input type="submit" value="Calculate!"/>
+</p>
+}
+
+@if (Model == null || string.IsNullOrWhiteSpace(Model.origin))
+{
+	<p>Please specify two valid IATA codes to calculate the distance.</p>
+}
+else
+{
+	<h2>@Model.origin in @Model.oCountry lies @Model.distanceKM Kilometers from @Model.destination in @Model.dCountry. </h2>
+}
