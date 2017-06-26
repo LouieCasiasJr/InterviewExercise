@@ -41,20 +41,26 @@ namespace MirabeauExercise.Models
             IEnumerable<SelectListItem> Countries = airports.Select(Airport => new SelectListItem { Text = Airport.country, Value = Airport.iso }).Distinct(new countryComparer()).ToList();
             Airport.countries = Countries.OrderBy(x => x.Text);
         }
-        
+
         public static IEnumerable<Airport> GetAirports(string URL)
         {
             using (var client = new HttpClient(
                 new WebRequestHandler() { CachePolicy = new HttpRequestCachePolicy(HttpRequestCacheLevel.CacheIfAvailable)}))
             {
+                client.DefaultRequestHeaders.Connection.Clear();
+                client.DefaultRequestHeaders.ConnectionClose = false;
+                client.DefaultRequestHeaders.Connection.Add("keep-alive");
+                client.DefaultRequestHeaders.TryAddWithoutValidation("If-None-Match",
+                "0cee17c78e402a85bfd279f6eb5b277c2726194b");
                 client.DefaultRequestHeaders.CacheControl =
                     new CacheControlHeaderValue() {Public = true, MaxAge = TimeSpan.FromMinutes(5)};
                 var response = client.GetAsync(URL).Result;
-                response.Content.Headers.Add("from-feed", "*");
 
                 if (response.IsSuccessStatusCode)
                 {
-                    response.Content.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(5);
+                    if (!string.Equals("HIT", response.Headers.GetValues("x-cache").FirstOrDefault()))
+                        response.Content.Headers.Add("from-feed", "*");
+
                     var responsecontent = response.Content;
                     string data = responsecontent.ReadAsStringAsync().Result;
 
